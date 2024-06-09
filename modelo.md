@@ -1,13 +1,13 @@
 ### Contamos con:
 
-* $T$ trabajadores
-* $O$ órdenes de trabajo a realizar
-* cada $o_i$ requiere de una cantidad prefijada de trabajadores, $t_i$, y realizarla da un
+* [X] $T$ trabajadores
+* [X] $O$ órdenes de trabajo a realizar
+* [X] cada $o_i$ requiere de una cantidad prefijada de trabajadores, $t_i$, y realizarla da un
   beneficio $b_i$.
-* 6 dias de semana a planificar
-* Cada día tiene 5 turnos de 2 horas.
-* Cada órde de trabajo se puede realizar utilizando un solo turno
-* Un mismo trabajador no puede realizar más de una orden en un mismo turno.
+* [X] 6 dias de semana a planificar
+* [X] Cada día tiene 5 turnos de 2 horas.
+* [X] Cada órde de trabajo se puede realizar utilizando un solo turno
+* [X] Un mismo trabajador no puede realizar más de una orden en un mismo turno.
 
 #### Objetivo:
 
@@ -17,27 +17,27 @@ La ganancia de la asignación se define como la suma de los beneficios de las ó
 
 ### Restricciones:
 
-* No toda orden de trabajo tiene que ser resuelta.
-* Ningún trabajador puede trabajar los 6 dı́as de la planificación.
-* Ningún trabajador puede trabajar los 5 turnos de un dı́a.
-* Hay pares de órdenes de trabajo que no pueden ser satisfechas en turnos consecutivos
+* [X] No toda orden de trabajo tiene que ser resuelta.
+* [X] Ningún trabajador puede trabajar los 6 dı́as de la planificación.
+* [X] Ningún trabajador puede trabajar los 5 turnos de un dı́a.
+* [ ] Hay pares de órdenes de trabajo que no pueden ser satisfechas en turnos consecutivos
   de un trabajador (si bien en este problema no nos preocupamos por el ruteo sino sólo
   por la asignación, hay órdenes tan lejanas geográficamente que no se podrán satisfacer
   consecutivamente por el mismo trabajador).
-* Una orden de trabajo $o_i$ debe tener asignados sus $t_i$ trabajadores en un mismo turno
+* [X] Una orden de trabajo $o_i$ debe tener asignados sus $t_i$ trabajadores en un mismo turno
   para poder ser resuelta.
-* Existen algunos pares de órdenes de trabajo correlativas. Un par ordenado de órdenes
+* [ ] Existen algunos pares de órdenes de trabajo correlativas. Un par ordenado de órdenes
   correlativas A y B, nos indica que si se satisface A, entonces debe satisfacerse B ese
   mismo dı́a en el turno consecutivo.
-* Los trabajadores son remunerados según la cantidad de órdenes asignadas, por lo que
+* [ ] Los trabajadores son remunerados según la cantidad de órdenes asignadas, por lo que
   la diferencia entre el trabajador con más órdenes asignadas y el trabajador con menos
   órdenes no puede ser mayor a 8. Para esto se consideran todos los trabajadores, aún los
   que no tienen ninguna tarea asignada esa semana.
 
 ### Restricciones (Deseables)
 
-* Hay conflictos entre algunos trabajadores que hacen que prefieran no ser asignados a una misma orden de trabajo
-* Hay pares de órdenes de trabajo que son repetitivas, por lo que será bueno que un mismo trabajador no sea asignado a ambas.
+* [ ] Hay conflictos entre algunos trabajadores que hacen que prefieran no ser asignados a una misma orden de trabajo
+* [ ] Hay pares de órdenes de trabajo que son repetitivas, por lo que será bueno que un mismo trabajador no sea asignado a ambas.
 
 ### Remuneración de trabajoders
 
@@ -50,12 +50,16 @@ Los trabajadores son remunerados según el siguiente esquema:
 
 ### Modelo:
 
+* [X] 
+
 $$
 H_{idt} = \begin{cases}
     1 & \text{si ``El trabajador $i$ realiza una órden el día $d$ en el turno $t$"}  \\ 
     0 & \text{cc}
 \end{cases}
 $$
+
+* [X] 
 
 $$
 L_{id} = \begin{cases}
@@ -64,12 +68,16 @@ L_{id} = \begin{cases}
 \end{cases}
 $$
 
+* [X] 
+
 $$
 X_{ij} = \begin{cases}
     1 & \text{si ``El trabajador $i$ realiza la orden $j$ "}  \\ 
     0 & \text{cc}
 \end{cases}
 $$
+
+* [ ] 
 
 $$
 Y_{ij} = \begin{cases} 
@@ -78,12 +86,16 @@ Y_{ij} = \begin{cases}
 \end{cases}
 $$
 
+* [X] 
+
 $$
 Z_{jdt} = \begin{cases} 
 1 & \text{si ``La órden $j$ se realiza en el día $d$ en el turno $t$"} \\
 0 & \text{cc}
 \end{cases}
 $$
+
+* [X] 
 
 $$
 K_{j} = \begin{cases} 
@@ -95,12 +107,12 @@ $$
 Maximizar:
 
 $$
-\sum_{i\in T}\sum_{j\in O}{b_jX_{ij}} - \sum_{i\in T}\sum_{j\in [1,5]}{1000Y_{ij}} - \sum_{i\in T}\sum_{j\in [6,10]}{1200Y_{ij}} - \sum_{i\in T}\sum_{j\in [11,15]}{1400Y_{ij}} - \sum_{i\in T}\sum_{j\in [16,30]}{1500Y_{ij}}
+\sum_{j\in O}{b_jK_j} - \sum_{i\in T}\sum_{j\in [1,5]}{1000Y_{ij}} - \sum_{i\in T}\sum_{j\in [6,10]}{1200Y_{ij}} - \sum_{i\in T}\sum_{j\in [11,15]}{1400Y_{ij}} - \sum_{i\in T}\sum_{j\in [16,20]}{1500Y_{ij}}
 $$
 
 Restricciones:
 
-* Cada órden de trabajo se puede realizar utilizando un solo turno y puede no realizarse
+* Cada órden de trabajo se puede realizar utilizando un solo turno
 
 $$
 \sum_{d\in D}\sum_{t\in [1,5]} {Z_{jdt}} = K_j. \qquad \forall {j \in O}
@@ -134,18 +146,16 @@ $$
 * $X_{ij} \land Z_{jdt} \implies H_{idt}$
 
 $$
-
-
+X_{ij} + Z_{jdt} \leq 2H_{idt} + M (2 - X_{ij} -  Z_{jdt})
 $$
 
-  X_{ij} + Z_{jdt} \leq 2H_{idt} + M (2 - X_{ij} -  Z_{jdt})
+* $H_{idt} \implies \exists j\in O (Z_{jdt} \land X_{ij})$
 
-$$
+  $$
+  H_{idt}\leq \sum_{j\in O}{\frac{Z_{jdt} + X_{ij}}{2}}
+  $$
+* ---
 
-
-$$
-
-* ..
 
   $$
   \sum_{j\in O} {X_{ij}} = \sum_{k\in [1,30]}{Y_{ik}}, \qquad \forall i\in T
