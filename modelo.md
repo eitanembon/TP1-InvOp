@@ -37,7 +37,7 @@ La ganancia de la asignación se define como la suma de los beneficios de las ó
 ### Restricciones (Deseables)
 
 * [X] Hay conflictos entre algunos trabajadores que hacen que prefieran no ser asignados a una misma orden de trabajo
-* [ ] Hay pares de órdenes de trabajo que son repetitivas, por lo que será bueno que un mismo trabajador no sea asignado a ambas.
+* [X] Hay pares de órdenes de trabajo que son repetitivas, por lo que será bueno que un mismo trabajador no sea asignado a ambas.
 
 ### Remuneración de trabajoders
 
