@@ -15,6 +15,8 @@ class InstanciaAsignacionCuadrillas:
         self.ordenes_correlativas = []
         self.ordenes_conflictivas = []
         self.ordenes_repetitivas = []
+        self.dias = [1,2,3,4,5,6]
+        self.turnos = [1,2,3,4,5]
         
     def leer_datos(self,nombre_archivo):
 

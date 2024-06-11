@@ -121,12 +121,16 @@ $$
 
 Restricciones:
 
-* $H_{idt} \iff \exists! j \in O (W_{ijdt})$
+* Un trabajador no puede realizar dos trabajos al mismo tiempo
+
+  $H_{idt} \iff \exists! j \in O (W_{ijdt})$
 
   $$
   H_{idt} = \sum_{j\in O}{W_{ijdt}}
   $$
-* $X_{ij}\iff \exists! d \in D, t\in [1,5] (W_{ijdt})$
+* El trabajdor i no puede realizar una misma tarea en dos momentos distintos
+
+  $X_{ij}\iff \exists! d \in D, t\in [1,5] (W_{ijdt})$
 
   $$
   X_{ij} = \sum_{d\in D}\sum_{t\in [1,5]}{W_{ijdt}}
@@ -134,7 +138,7 @@ Restricciones:
 * $Z_{jdt} \land X_{ij}\iff W_{ijdt}$
 
   $$
-  2W_{ijdt} \leq Z_{jdt} + X_{ij} \leq 2W_{ijdt} + M(2 - Z_{jdt} - X_{ij})
+  2W_{ijdt} \leq Z_{jdt} + X_{ij} \leq 2W_{ijdt} +M(2 - Z_{jdt} - X_{ij})
   $$
 
   $$
@@ -153,13 +157,11 @@ $$
 \sum_{i\in T}{X_{ij}} = t_jK_j, \qquad \forall j\in O
 $$
 
-
-Un trabajador no puede trabajar en dos ordenes diferentes en un mismo turno
+Un trabajador no puede trabajar en dos ordenes diferentes en un mismo turno (Posiblemente no hay que ponerla)
 
 $$
 X_{ij_1}+X_{ij_2} \leq 1 + M(1-Z_{j_1dt}) + M(1-Z_{j_2dt}), \qquad \forall i\in T, j_1,j_2\in O, d\in D, t\in [1,5]
 $$
-
 
 Un trabajador no puede trabajar los 6 dias de la planificación
 
@@ -167,13 +169,11 @@ $$
 \sum_{d\in D}{L_{id}} \leq 5, \qquad \forall i \in T
 $$
 
-
 Un trabajador no puede trabajar los 5 turnos de un dia
 
 $$
 \sum_{t\in [1,5]}{H_{idt}} \leq 4, \qquad \forall i\in T, \forall d \in D
 $$
-
 
 Equivalencia entre Lid y Hidt (Lid$\iff$Existe un t tal que  Hidt )
 
@@ -181,20 +181,17 @@ $$
 L_{id} \leq \sum_{t\in [1,5]}{H_{idt}} \leq 5L_{id}, \qquad  \forall i\in T, d\in D
 $$
 
-
 La cant de trabajos j que realiza i es igual
 
 $$
 \sum_{j\in O} {X_{ij}} = \sum_{k\in [1,20]}{Y_{ik}}, \qquad \forall i\in T
 $$
 
-
 $Y_{i(k+1)} \implies Y_{ik}$ para todo $k = 1\dots 19$
 
 $$
 Y_{i(k+1)} \leq Y_{ik}, \qquad \forall i \in T, k = 1 \dots 19
 $$
-
 
 Si la tarea $j$ debe realizarse antes que la tarea $j'$ entonces $Z_{jdt} \iff Z_{j'd(t+1)}$
 
