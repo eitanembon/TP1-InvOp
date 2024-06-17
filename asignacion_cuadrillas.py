@@ -143,7 +143,7 @@ def resolver_lp(prob):
     # Resolver el lp
     prob.solve()
 
-#def mostrar_solucion(prob,instancia):
+def mostrar_solucion(prob,instancia):
     # Obtener informacion de la solucion a traves de 'solution'
     
     # Tomar el estado de la resolucion

@@ -1,0 +1,345 @@
+
+def armar_lp(prob, instancia):
+
+    # Agregar las variables
+    nombres2indices = agregar_variables(prob, instancia)
+    # print(nombres2indices)
+    # ## W_0_0_2_0
+    # print(nombres2indices['W_' + str(0) + '_' + str(0) + '_' + str(2) + '_' + str(0)])
+    # Agregar las restricciones 
+    agregar_restricciones(prob, instancia, nombres2indices)
+
+    # Setear el sentido del problema
+    prob.objective.set_sense(prob.objective.sense.minimize)
+
+    # Escribir el lp a archivo
+    prob.write('asignacionCuadrillas.lp')
+
+
+def agregar_variable(nombre, coeficiente, indices):
+    nombre_var = nombre + '_' + reduce(lambda x, y: str(x) + '_' + str(y), indices)
+    nombres.append(nombre)
+    coeficientes_funcion_objetivo.append(coeficiente)
+    nombres2indices[nombre_var] = len(nombres) - 1
+
+def agregar_variables(prob, instancia):
+    # Definir y agregar las variables:
+	# metodo 'add' de 'variables', con parametros:
+	# obj: costos de la funcion objetivo
+	# lb: cotas inferiores
+    # ub: cotas superiores
+    # types: tipo de las variables
+    # names: nombre (como van a aparecer en el archivo .lp)
+	
+    # Llenar coef\_funcion\_objetivo
+    coeficientes_funcion_objetivo = []
+    nombres2indices = {}
+
+    # Poner nombre a las variables
+    nombres = []
+    for i in range(instancia.cantidad_trabajadores):
+        for j in range(instancia.cantidad_ordenes):
+            for d in range(instancia.dias):
+                for t in range(instancia.turnos):
+                    nombre = 'W_' + str(i) + '_' + str(j) + '_' + str(d) + '_' + str(t)
+                    nombres.append(nombre)
+                    coeficientes_funcion_objetivo.append(0)
+                    nombres2indices[nombre] = len(nombres) - 1
+    for i in range(instancia.cantidad_trabajadores):
+        for d in range(instancia.dias):
+            for t in range(instancia.turnos):
+                nombre = 'H_' + str(i) + '_' + str(d) + '_' + str(t)
+                nombres.append(nombre)
+                coeficientes_funcion_objetivo.append(0)
+                nombres2indices[nombre] = len(nombres) - 1
+    for i in range(instancia.cantidad_trabajadores):
+        for d in range(instancia.dias):
+            nombre = 'L_' + str(i) + '_' + str(d)
+            nombres.append(nombre)
+            coeficientes_funcion_objetivo.append(0)
+            nombres2indices[nombre] = len(nombres) - 1
+    for i in range(instancia.cantidad_trabajadores):
+        for j in range(instancia.cantidad_ordenes):
+            nombre = 'X_' + str(i) + '_' + str(j)
+            nombres.append(nombre)
+            coeficientes_funcion_objetivo.append(0)
+            nombres2indices[nombre] = len(nombres) - 1
+    for i in range(instancia.cantidad_trabajadores):
+        for k in range(5):
+            nombre = 'Y_' + str(i) + '_' + str(k)
+            nombres.append(nombre)
+            coeficientes_funcion_objetivo.append(-1000)
+            nombres2indices[nombre] = len(nombres) - 1
+        for k in range(5, 10):
+            nombre = 'Y_' + str(i) + '_' + str(k)
+            nombres.append(nombre)
+            coeficientes_funcion_objetivo.append(-1200)
+            nombres2indices[nombre] = len(nombres) - 1
+        for k in range(10, 15):
+            nombre = 'Y_' + str(i) + '_' + str(k)
+            nombres.append(nombre)
+            coeficientes_funcion_objetivo.append(-1400)
+            nombres2indices[nombre] = len(nombres) - 1
+        for k in range(15, 20):
+            nombre = 'Y_' + str(i) + '_' + str(k)
+            nombres.append(nombre)
+            coeficientes_funcion_objetivo.append(-1500)
+            nombres2indices[nombre] = len(nombres) - 1
+    
+    for j in range(instancia.cantidad_ordenes):
+        for d in range(instancia.dias):
+            for t in range(instancia.turnos):
+                nombre = 'Z_' + str(j) + '_' + str(d) + '_' + str(t)
+                nombres.append(nombre)
+                coeficientes_funcion_objetivo.append(0)
+                nombres2indices[nombre] = len(nombres) - 1
+    for j in range(instancia.cantidad_ordenes):
+        nombre = 'K_' + str(j)
+        nombres.append(nombre)
+        coeficientes_funcion_objetivo.append(int(instancia.ordenes[j].beneficio))
+        nombres2indices[nombre] = len(nombres) - 1
+        
+    
+    cantVar = len(nombres)
+    # Agregar las variables
+    prob.variables.add(obj = coeficientes_funcion_objetivo, lb = [0]*cantVar, ub = [1]*cantVar, types=['B']*cantVar, names=nombres)
+
+    return nombres2indices
+
+def agregar_restricciones(prob, instancia, nombres2indices):
+    # Agregar las restricciones ax <= (>= ==) b:
+	# funcion 'add' de 'linear_constraints' con parametros:
+	# lin_expr: lista de listas de [ind,val] de a
+    # sense: lista de 'L', 'G' o 'E'
+    # rhs: lista de los b
+    # names: nombre (como van a aparecer en el archivo .lp)
+	
+    # Notar que cplex espera "una matriz de restricciones", es decir, una
+    # lista de restricciones del tipo ax <= b, [ax <= b]. Por lo tanto, aun cuando
+    # agreguemos una unica restriccion, tenemos que hacerlo como una lista de un unico
+    # elemento.
+    nro_ecuacion = 0
+    nro_restriccion = 0
+
+    # Un trabajador no puede realizar dos trabajos al mismo tiempo
+    for i in range(instancia.cantidad_trabajadores):
+        for d in range(instancia.dias):
+            for t in range(instancia.turnos):
+                indices = [nombres2indices['H_' + str(i) + '_' + str(d) + '_' + str(t)]]
+                valores = [1]
+                for j in range(instancia.cantidad_ordenes):
+                    indices = indices + [nombres2indices['W_' + str(i) + '_' + str(j) + '_' + str(d) + '_' + str(t)]]
+                    valores = valores + [-1]
+                fila = [indices,valores]
+                prob.linear_constraints.add(lin_expr=[fila], senses=['E'], rhs=[0], names=[f'Ecuacion_{nro_ecuacion}_Restriccion_{nro_restriccion}'])
+                nro_restriccion += 1
+    
+    # El trabajdor i no puede realizar una misma tarea en dos momentos distintos
+    nro_ecuacion += 1
+    nro_restriccion = 0
+    for i in range(instancia.cantidad_trabajadores):
+        for j in range(instancia.cantidad_ordenes):
+            indices = [nombres2indices[f'X_{i}_{j}']]
+            valores = [1]
+            for d in range(instancia.dias):
+                for t in range(instancia.turnos):
+                    indices.append(nombres2indices[f'W_{i}_{j}_{d}_{t}'])
+                    valores.append(-1)
+                    
+            fila = [indices,valores]
+            prob.linear_constraints.add(lin_expr=[fila], senses=['E'], rhs=[0], names=[f'Ecuacion_{nro_ecuacion}_Restriccion_{nro_restriccion}'])
+            nro_restriccion += 1
+    ### Semantica de Z y X con respecto a W 
+    # Si el trabajador i realiza la tarea j en el dia d y el turno t, entonces la tarea j se realiza en el dia d y el turno t y además el trabajador i realiza la tarea j
+    nro_ecuacion += 1
+    nro_restriccion = 0
+    for i in range(instancia.cantidad_trabajadores):
+        for j in range(instancia.cantidad_ordenes):
+            for d in range(instancia.dias):
+                for t in range(instancia.turnos):
+                    indices = [nombres2indices[f'W_{i}_{j}_{d}_{t}'], nombres2indices[f'X_{i}_{j}'], nombres2indices[f'Z_{j}_{d}_{t}']]
+                    valores = [2, -1, -1]
+                    fila = [indices,valores]
+                    prob.linear_constraints.add(lin_expr=[fila], senses=['L'], rhs=[0], names=[f'Ecuacion_{nro_ecuacion}_Restriccion_{nro_restriccion}'])
+                    nro_restriccion += 1
+    # la tarea j se realiza en el dia d y el turno t y además el trabajador i realiza la tarea j, entonces el trabajador i realiza la tarea j en el dia d y el turno t
+    for i in range(instancia.cantidad_trabajadores):
+        for j in range(instancia.cantidad_ordenes):
+            for d in range(instancia.dias):
+                for t in range(instancia.turnos):
+                    indices = [nombres2indices[f'W_{i}_{j}_{d}_{t}'], nombres2indices[f'X_{i}_{j}'], nombres2indices[f'Z_{j}_{d}_{t}']]
+                    valores = [-1, 1, 1]
+                    fila = [indices,valores]
+                    prob.linear_constraints.add(lin_expr=[fila], senses=['L'], rhs=[1], names=[f'Ecuacion_{nro_ecuacion}_Restriccion_{nro_restriccion}'])
+                    nro_restriccion += 1
+    ### Cada órden de trabajo se puede realizar utilizando un solo turno
+    nro_ecuacion += 1
+    nro_restriccion = 0
+    for j in range(instancia.cantidad_ordenes):
+        indices = [nombres2indices[f'K_{j}']]
+        valores = [1]
+        for d in range(instancia.dias):
+            for t in range(instancia.turnos):
+                indices.append(nombres2indices[f'Z_{j}_{d}_{t}'])
+                valores.append(-1)
+        fila = [indices,valores]
+        prob.linear_constraints.add(lin_expr=[fila], senses=['E'], rhs=[0], names=[f'Ecuacion_{nro_ecuacion}_Restriccion_{nro_restriccion}'])
+        nro_restriccion += 1
+    ### La cantidad de trabajadores de  la tarea j es t_j si se realiza y 0 si no se realiza
+    nro_ecuacion += 1
+    nro_restriccion = 0
+    for j in range(instancia.cantidad_ordenes):
+        indices = [nombres2indices[f'K_{j}']]
+        valores = [int(instancia.ordenes[j].cantidad_de_trabajadores)]
+        for i in range(instancia.cantidad_trabajadores):
+            indices.append(nombres2indices[f'X_{i}_{j}'])
+            valores.append(-1)
+        fila = [indices,valores]
+        prob.linear_constraints.add(lin_expr=[fila], senses=['E'], rhs=[0], names=[f'Ecuacion_{nro_ecuacion}_Restriccion_{nro_restriccion}'])
+        nro_restriccion += 1
+    
+    ###Un trabajador no puede trabajar los 6 dias de la planificación
+    nro_ecuacion += 1
+    nro_restriccion = 0
+    for i in range(instancia.cantidad_trabajadores):
+        indices = []
+        valores = []
+        for d in range(instancia.dias):
+            indices.append(nombres2indices[f'L_{i}_{d}'])
+            valores.append(1)
+        fila = [indices,valores]
+        prob.linear_constraints.add(lin_expr=[fila], senses=['L'], rhs=[5], names=[f'Ecuacion_{nro_ecuacion}_Restriccion_{nro_restriccion}'])
+        nro_restriccion += 1
+    ### Un trabajador no puede trabajar los 5 turnos de un dia
+    nro_ecuacion += 1
+    nro_restriccion = 0
+    for i in range(instancia.cantidad_trabajadores):
+        for d in range(instancia.dias):
+            indices = []
+            valores = []
+            for t in range(instancia.turnos):
+                indices.append(nombres2indices[f'H_{i}_{d}_{t}'])
+                valores.append(1)
+            fila = [indices,valores]
+            prob.linear_constraints.add(lin_expr=[fila], senses=['L'], rhs=[4], names=[f'Ecuacion_{nro_ecuacion}_Restriccion_{nro_restriccion}'])
+            nro_restriccion += 1
+    
+ 
+    ### Equivalencia entre Lid y Hidt (Lid <-> Existe un t tal que  Hidt )
+    nro_ecuacion += 1
+    nro_restriccion = 0
+    ## Si el trabajador i trabaja en el dia d entonces existe un turno t en el que el trabajador i trabaja en el dia d
+    
+    for i in range(instancia.cantidad_trabajadores):
+        for d in range(instancia.dias):
+            indices = [nombres2indices[f'L_{i}_{d}']]
+            valores = [1]
+            for t in range(instancia.turnos):
+                indices.append(nombres2indices[f'H_{i}_{d}_{t}'])
+                valores.append(-1)
+            fila = [indices,valores]
+            prob.linear_constraints.add(lin_expr=[fila], senses=['L'], rhs=[0], names=[f'Ecuacion_{nro_ecuacion}_Restriccion_{nro_restriccion}'])
+            nro_restriccion += 1
+    ## Si existe un turno t en el que el trabajador i trabaja en el dia d entonces el trabajador i trabaja en el dia d
+    for i in range(instancia.cantidad_trabajadores):
+        for d in range(instancia.dias):
+            indices = [nombres2indices[f'L_{i}_{d}']]
+            valores = [5]
+            for t in range(instancia.turnos):
+                indices.append(nombres2indices[f'H_{i}_{d}_{t}'])
+                valores.append(-1)
+            fila = [indices,valores]
+            prob.linear_constraints.add(lin_expr=[fila], senses=['G'], rhs=[0], names=[f'Ecuacion_{nro_ecuacion}_Restriccion_{nro_restriccion}'])
+            nro_restriccion += 1
+    
+    
+    ###Si el trabajador i realiza su k tareas sii el trabajador i realiza k ordenes
+    nro_ecuacion += 1
+    nro_restriccion = 0
+    for i in range(instancia.cantidad_trabajadores):
+        for j in range(instancia.cantidad_ordenes):
+            indices = [nombres2indices[f'X_{i}_{j}']]
+            valores = [1]
+
+        for k in range(20):
+            indices.append(nombres2indices[f'Y_{i}_{k}'])
+            valores.append(-1)
+
+        fila = [indices,valores]
+        prob.linear_constraints.add(lin_expr=[fila], senses=['E'], rhs=[0], names=[f'Ecuacion_{nro_ecuacion}_Restriccion_{nro_restriccion}'])
+        nro_restriccion += 1
+
+    ###Si el trabajador i hizo k+1 ordenes, entonces hizo k
+    nro_ecuacion += 1
+    nro_restriccion = 0
+    for i in range(instancia.cantidad_trabajadores):
+        for k in range(19):
+            indices = [nombres2indices[f'Y_{i}_{k+1}'], nombres2indices[f'Y_{i}_{k}']]
+            valores = [1, -1]
+            fila = [indices,valores]
+            prob.linear_constraints.add(lin_expr=[fila], senses=['L'], rhs=[0], names=[f'Ecuacion_{nro_ecuacion}_Restriccion_{nro_restriccion}'])
+            nro_restriccion += 1
+    """Ordenes correlativas"""
+    ### Si la orden j debe realizarse antes que la orden k, enotonces Zjdt <=> Zkd(t+1)
+    for orden in instancia.ordenes_correlativas:
+        for d in range(instancia.dias):
+            for t in range(instancia.turnos - 1):
+                indices = [nombres2indices[f'Z_{orden[0]}_{d}_{t}'], nombres2indices[f'Z_{orden[1]}_{d}_{t+1}']]
+                valores = [1, -1]
+                fila = [indices,valores]
+                prob.linear_constraints.add(lin_expr=[fila], senses=['E'], rhs=[0], names=[f'Ecuacion_{nro_ecuacion}_Restriccion_{nro_restriccion}'])
+                nro_restriccion += 1
+    
+
+    ### Si hay dos ordenes correlativas, la primera no puede realizarse en el último turno y la última no puede realizarse en el primero
+    nro_ecuacion += 1
+    nro_restriccion = 0
+    for orden in instancia.ordenes_correlativas:
+        for d in range(instancia.dias):
+            indices = [nombres2indices[f'Z_{orden[0]}_{d}_{instancia.turnos-1}'], nombres2indices[f'Z_{orden[1]}_{d}_0']]
+            valores = [1, 1]
+            fila = [indices,valores]
+            prob.linear_constraints.add(lin_expr=[fila], senses=['E'], rhs=[0], names=[f'Ecuacion_{nro_ecuacion}_Restriccion_{nro_restriccion}'])
+            nro_restriccion += 1
+
+    ###Para todo par i2, i1 trabajadores la diferencia de la cantidad de trabajos que realizan no puede ser mayor a 8
+    nro_ecuacion += 1
+    nro_restriccion = 0
+    for j in range(instancia.cantidad_ordenes):
+        for i1 in range(instancia.cantidad_trabajadores-1):
+            for i2 in range(i1+1,instancia.cantidad_trabajadores):
+                indices = [nombres2indices[f'X_{i1}_{j}'], nombres2indices[f'X_{i2}_{j}']]
+                valores = [1, -1]
+                fila = [indices,valores]
+                prob.linear_constraints.add(lin_expr=[fila], senses=['L'], rhs=[8], names=[f'Ecuacion_{nro_ecuacion}_Restriccion_{nro_restriccion}'])
+                nro_restriccion += 1 
+    for j in range(instancia.cantidad_ordenes):
+        for i1 in range(instancia.cantidad_trabajadores-1):
+            for i2 in range(i1+1,instancia.cantidad_trabajadores):
+                indices = [nombres2indices[f'X_{i1}_{j}'], nombres2indices[f'X_{i2}_{j}']]
+                valores = [1, -1]
+                fila = [indices,valores]
+                prob.linear_constraints.add(lin_expr=[fila], senses=['G'], rhs=[-8], names=[f'Ecuacion_{nro_ecuacion}_Restriccion_{nro_restriccion}'])
+                nro_restriccion += 1 
+
+    ###(Opcional) Si i1 y i2 tienen conflicos, entonces no pueden estar asignados en una orden de trabajo 
+    nro_ecuacion += 1
+    nro_restriccion = 0
+    for conflicto in instancia.conflictos_trabajadores:
+        for j in range(instancia.cantidad_ordenes):
+            indices = [nombres2indices[f'X_{conflicto[0]}_{j}'], nombres2indices[f'X_{conflicto[1]}_{j}']]
+            valores = [1, 1]
+            fila = [indices,valores]
+            prob.linear_constraints.add(lin_expr=[fila], senses=['L'], rhs=[1], names=[f'Ecuacion_{nro_ecuacion}_Restriccion_{nro_restriccion}'])
+            nro_restriccion += 1
+
+    ### (Opcional) Si j y j'  son repetitivas entonces no puede haber un trabajador i que las realice a ambas
+    nro_ecuacion += 1
+    nro_restriccion = 0
+    for repeticion in instancia.ordenes_repetitivas:
+        for i in range(instancia.cantidad_trabajadores):
+            indices = [nombres2indices[f'X_{i}_{repeticion[0]}'], nombres2indices[f'X_{i}_{repeticion[1]}']]
+            valores = [1, 1]
+            fila = [indices,valores]
+            prob.linear_constraints.add(lin_expr=[fila], senses=['L'], rhs=[1], names=[f'Ecuacion_{nro_ecuacion}_Restriccion_{nro_restriccion}'])
+            nro_restriccion += 1
