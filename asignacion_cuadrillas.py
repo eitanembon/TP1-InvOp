@@ -18,7 +18,39 @@ class InstanciaAsignacionCuadrillas:
         self.ordenes_repetitivas = []
         self.dias = 6
         self.turnos = 5
-        
+    
+    def save(self, path):
+        if not path:
+            raise ValueError("Path is empty")
+        with open(path, 'w') as writeable:
+            # Se escribe la cantidad de trabajadores y la cantidad de ordenes
+            writeable.write(str(self.cantidad_trabajadores) + '\n')
+            writeable.write(str(self.cantidad_ordenes) + '\n')
+            
+            # Se escriben las ordenes
+            for orden in self.ordenes:
+                writeable.write(f'{orden.id} {orden.beneficio} {orden.cantidad_de_trabajadores}\n')
+            
+            # Se escriben los conflictos entre los trabajadores
+            writeable.write(str(len(self.conflictos_trabajadores)) + '\n')
+            for conflicto in self.conflictos_trabajadores:
+                writeable.write(f'{conflicto[0]} {conflicto[1]}\n')
+            
+            # Se escriben las ordenes correlativas
+            writeable.write(str(len(self.ordenes_correlativas)) + '\n')
+            for correlativa in self.ordenes_correlativas:
+                writeable.write(f'{correlativa[0]} {correlativa[1]}\n')
+            
+            # Se escriben las ordenes conflictivas
+            writeable.write(str(len(self.ordenes_conflictivas)) + '\n')
+            for conflictiva in self.ordenes_conflictivas:
+                writeable.write(f'{conflictiva[0]} {conflictiva[1]}\n')
+            
+            # Se escriben las ordenes repetitivas
+            writeable.write(str(len(self.ordenes_repetitivas)) + '\n')
+            for repetitiva in self.ordenes_repetitivas:
+                writeable.write(f'{repetitiva[0]} {repetitiva[1]}\n')
+            
     def leer_datos(self,nombre_archivo):
 
         # Se abre el archivo
@@ -399,7 +431,7 @@ class Modelo:
     def Lid_sii_existe_t_tal_que_Hidt(self, nro_ecuacion):
         nro_restriccion = 0
         ## Si el trabajador i trabaja en el dia d entonces existe un turno t en el que el trabajador i trabaja en el dia d
-        self.Lid_implica_existe_t_tq_Hidt(nro_ecuacion, nro_restriccion)
+        nro_restriccion = self.Lid_implica_existe_t_tq_Hidt(nro_ecuacion, nro_restriccion)
         ## Si existe un turno t en el que el trabajador i trabaja en el dia d entonces el trabajador i trabaja en el dia d
         self.existe_t_tq_Hidt_implica_Lid(nro_ecuacion, nro_restriccion)
 
@@ -426,6 +458,7 @@ class Modelo:
                 fila = [indices,valores]
                 self.prob.linear_constraints.add(lin_expr=[fila], senses=['L'], rhs=[0], names=[f'Ecuacion_{nro_ecuacion}_Restriccion_{nro_restriccion}'])
                 nro_restriccion += 1
+        return nro_restriccion
 
     def un_trabajador_no_puede_trabajar_los_5_turnos_de_un_dia(self, nro_ecuacion):
         nro_restriccion = 0
@@ -480,7 +513,7 @@ class Modelo:
     def Z_y_X_sii_W(self, nro_ecuacion):
         nro_restriccion = 0
         # Si el trabajador i realiza la tarea j en el dia d y el turno t, entonces la tarea j se realiza en el dia d y el turno t y además el trabajador i realiza la tarea j
-        self.W_implica_Z_y_X(nro_ecuacion, nro_restriccion)
+        nro_restriccion = self.W_implica_Z_y_X(nro_ecuacion, nro_restriccion)
         # la tarea j se realiza en el dia d y el turno t y además el trabajador i realiza la tarea j, entonces el trabajador i realiza la tarea j en el dia d y el turno t
         self.Z_y_X_implica_W(nro_ecuacion, nro_restriccion)
 
@@ -505,9 +538,8 @@ class Modelo:
                         fila = [indices,valores]
                         self.prob.linear_constraints.add(lin_expr=[fila], senses=['L'], rhs=[0], names=[f'Ecuacion_{nro_ecuacion}_Restriccion_{nro_restriccion}'])
                         nro_restriccion += 1
-
+        return nro_restriccion
     def un_trabajador_no_puede_realizar_un_trabajo_en_dos_tiempos_diferentes(self, nro_ecuacion):
-        nro_ecuacion += 1
         nro_restriccion = 0
         for i in range(self.instancia.cantidad_trabajadores):
             for j in range(self.instancia.cantidad_ordenes):
