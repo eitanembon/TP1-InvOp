@@ -230,8 +230,6 @@ class Modelo:
         # Agregar las variables
         self.prob.variables.add(obj = self.coeficientes_funcion_objetivo, lb = [0]*cantVar, ub = [1]*cantVar, types=['B']*cantVar, names=self.nombres)
 
-
-
     def agregar_variables(self):
         # Definir y agregar las variables:
         # metodo 'add' de 'variables', con parametros:
@@ -327,26 +325,26 @@ class Modelo:
         self.si_las_ordenes_j1_y_j2_son_conflictivas_y_se_realizan_en_turnos_consecutivos_entonces_no_puede_ser_el_mismo_trabajador_quien_las_realiza(nro_ecuacion)
 
         ###(Opcional) Si i1 y i2 tienen conflicos, entonces no pueden estar asignados en una orden de trabajo 
-        # nro_ecuacion += 1
-        # nro_restriccion = 0
-        # for conflicto in self.instancia.conflictos_trabajadores:
-        #     for j in range(self.instancia.cantidad_ordenes):
-        #         indices = [self.nombres2indices[f'X_{conflicto[0]}_{j}'], self.nombres2indices[f'X_{conflicto[1]}_{j}']]
-        #         valores = [1, 1]
-        #         fila = [indices,valores]
-        #         self.prob.linear_constraints.add(lin_expr=[fila], senses=['L'], rhs=[1], names=[f'Ecuacion_{nro_ecuacion}_Restriccion_{nro_restriccion}'])
-        #         nro_restriccion += 1
+        nro_ecuacion += 1
+        nro_restriccion = 0
+        for conflicto in self.instancia.conflictos_trabajadores:
+            for j in range(self.instancia.cantidad_ordenes):
+                indices = [self.nombres2indices[f'X_{conflicto[0]}_{j}'], self.nombres2indices[f'X_{conflicto[1]}_{j}']]
+                valores = [1, 1]
+                fila = [indices,valores]
+                self.prob.linear_constraints.add(lin_expr=[fila], senses=['L'], rhs=[1], names=[f'Ecuacion_{nro_ecuacion}_Restriccion_{nro_restriccion}'])
+                nro_restriccion += 1
 
         # ### (Opcional) Si j y j'  son repetitivas entonces no puede haber un trabajador i que las realice a ambas
-        # nro_ecuacion += 1
-        # nro_restriccion = 0
-        # for repeticion in self.instancia.ordenes_repetitivas:
-        #     for i in range(self.instancia.cantidad_trabajadores):
-        #         indices = [self.nombres2indices[f'X_{i}_{repeticion[0]}'], self.nombres2indices[f'X_{i}_{repeticion[1]}']]
-        #         valores = [1, 1]
-        #         fila = [indices,valores]
-        #         self.prob.linear_constraints.add(lin_expr=[fila], senses=['L'], rhs=[1], names=[f'Ecuacion_{nro_ecuacion}_Restriccion_{nro_restriccion}'])
-        #         nro_restriccion += 1
+        nro_ecuacion += 1
+        nro_restriccion = 0
+        for repeticion in self.instancia.ordenes_repetitivas:
+            for i in range(self.instancia.cantidad_trabajadores):
+                indices = [self.nombres2indices[f'X_{i}_{repeticion[0]}'], self.nombres2indices[f'X_{i}_{repeticion[1]}']]
+                valores = [1, 1]
+                fila = [indices,valores]
+                self.prob.linear_constraints.add(lin_expr=[fila], senses=['L'], rhs=[1], names=[f'Ecuacion_{nro_ecuacion}_Restriccion_{nro_restriccion}'])
+                nro_restriccion += 1
         
     def si_las_ordenes_j1_y_j2_son_conflictivas_y_se_realizan_en_turnos_consecutivos_entonces_no_puede_ser_el_mismo_trabajador_quien_las_realiza(self, nro_ecuacion):
         nro_restriccion = 0
@@ -365,23 +363,28 @@ class Modelo:
     def para_todo_par_de_trabajadores_la_diferencia_de_la_cantidad_de_trabajos_que_realizan_no_puede_ser_mayor_a_8(self, nro_ecuacion):
         ###-8 \leq \sum_{j\in O} X_{ij} - X_{i'j} \leq 8, \qquad \forall i<i' \in T
         nro_restriccion = 0
-        for j in range(self.instancia.cantidad_ordenes):
-            for i1 in range(self.instancia.cantidad_trabajadores-1):
-                for i2 in range(i1+1,self.instancia.cantidad_trabajadores):
-                    indices = [self.nombres2indices[f'X_{i1}_{j}'], self.nombres2indices[f'X_{i2}_{j}']]
-                    valores = [1, -1]
-                    fila = [indices,valores]
-                    self.prob.linear_constraints.add(lin_expr=[fila], senses=['L'], rhs=[8], names=[f'Ecuacion_{nro_ecuacion}_Restriccion_{nro_restriccion}'])
-                    nro_restriccion += 1 
-        for j in range(self.instancia.cantidad_ordenes):
-            for i1 in range(self.instancia.cantidad_trabajadores-1):
-                for i2 in range(i1+1,self.instancia.cantidad_trabajadores):
-                    indices = [self.nombres2indices[f'X_{i1}_{j}'], self.nombres2indices[f'X_{i2}_{j}']]
-                    valores = [1, -1]
-                    fila = [indices,valores]
-                    self.prob.linear_constraints.add(lin_expr=[fila], senses=['G'], rhs=[-8], names=[f'Ecuacion_{nro_ecuacion}_Restriccion_{nro_restriccion}'])
-                    nro_restriccion += 1
+        for i1 in range(self.instancia.cantidad_trabajadores-1):
+            for i2 in range(i1+1,self.instancia.cantidad_trabajadores):
+                indices = []
+                valores = []
+                for j in range(self.instancia.cantidad_ordenes):
+                    indices += [self.nombres2indices[f'X_{i1}_{j}'], self.nombres2indices[f'X_{i2}_{j}']]
+                    valores += [1, -1]
+                fila = [indices,valores]
+                self.prob.linear_constraints.add(lin_expr=[fila], senses=['L'], rhs=[8], names=[f'Ecuacion_{nro_ecuacion}_Restriccion_{nro_restriccion}'])
+                nro_restriccion += 1 
 
+        for i1 in range(self.instancia.cantidad_trabajadores-1):
+            for i2 in range(i1+1,self.instancia.cantidad_trabajadores):
+                indices = []
+                valores = []
+                for j in range(self.instancia.cantidad_ordenes):
+                    indices += [self.nombres2indices[f'X_{i1}_{j}'], self.nombres2indices[f'X_{i2}_{j}']]
+                    valores += [1, -1]
+                fila = [indices,valores]
+                self.prob.linear_constraints.add(lin_expr=[fila], senses=['G'], rhs=[-8], names=[f'Ecuacion_{nro_ecuacion}_Restriccion_{nro_restriccion}'])
+                nro_restriccion += 1
+    
     def si_hay_dos_ordenes_correlativas_la_primera_no_puede_realizarse_en_el_ultimo_turno_y_la_ultima_no_puede_realizarse_en_el_primero(self, nro_ecuacion):
         nro_restriccion = 0
         for orden in self.instancia.ordenes_correlativas:
@@ -416,9 +419,11 @@ class Modelo:
     def si_el_trabajador_i_realiza_su_k_tareas_sii_el_trabajador_i_realiza_k_ordenes(self, nro_ecuacion):
         nro_restriccion = 0
         for i in range(self.instancia.cantidad_trabajadores):
+            indices = []
+            valores = []
             for j in range(self.instancia.cantidad_ordenes):
-                indices = [self.nombres2indices[f'X_{i}_{j}']]
-                valores = [1]
+                indices += [self.nombres2indices[f'X_{i}_{j}']]
+                valores += [1]
 
             for k in range(20):
                 indices.append(self.nombres2indices[f'Y_{i}_{k}'])

@@ -18,7 +18,7 @@ La ganancia de la asignación se define como la suma de los beneficios de las ó
 ### Restricciones:
 
 * [X] No toda orden de trabajo tiene que ser resuelta.
-* [X] Ningún trabajador puede trabajar los 6 dı́as de la planificación.
+* [X] Ningún trabajador puede 	 los 6 dı́as de la planificación.
 * [X] Ningún trabajador puede trabajar los 5 turnos de un dı́a.
 * [X] Hay pares de órdenes de trabajo que no pueden ser satisfechas en turnos consecutivos
   de un trabajador (si bien en este problema no nos preocupamos por el ruteo sino sólo
