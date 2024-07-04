@@ -135,7 +135,9 @@ Restricciones:
   $$
   X_{ij} = \sum_{d\in D}\sum_{t\in [1,5]}{W_{ijdt}}
   $$
-* $Z_{jdt} \land X_{ij}\iff W_{ijdt}$
+* Una tarea solo puede ser realizada un mismo momento por cada trabajador que la realiza
+
+  $Z_{jdt} \land X_{ij}\iff W_{ijdt}$
 
   $$
   2W_{ijdt} \leq Z_{jdt} + X_{ij} \leq 2W_{ijdt} +M(2 - Z_{jdt} - X_{ij})
@@ -148,10 +150,15 @@ Restricciones:
 * Cada órden de trabajo se puede realizar utilizando un solo turno
 
 $$
-\sum_{d\in D}\sum_{t\in [1,5]} {Z_{jdt}} = K_j. \qquad \forall {j \in O}
+\sum_{d\in D}\sum_{t\in Tr} {Z_{jdt}} = K_j. \qquad \forall {j \in O}
 $$
 
 La cantidad de trabajadores de  la tarea $j$ es $t_i$ si se realiza
+
+$$
+
+
+$$
 
 $$
 \sum_{i\in T}{X_{ij}} = t_jK_j, \qquad \forall j\in O
@@ -160,7 +167,7 @@ $$
 Un trabajador no puede trabajar en dos ordenes diferentes en un mismo turno (Posiblemente no hay que ponerla)
 
 $$
-X_{ij_1}+X_{ij_2} \leq 1 + M(1-Z_{j_1dt}) + M(1-Z_{j_2dt}), \qquad \forall i\in T, j_1,j_2\in O, d\in D, t\in [1,5]
+X_{ij_1}+X_{ij_2} \leq 1 + M(1-Z_{j_1dt}) + M(1-Z_{j_2dt}), \qquad \forall i\in T, j_1,j_2\in O, d\in D, t\in Tr
 $$
 
 Un trabajador no puede trabajar los 6 dias de la planificación
