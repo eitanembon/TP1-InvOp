@@ -1,4 +1,4 @@
-from modules.entities import *
+from src.modules.entities import *
 
 
 def cargar_instancia(nombre_archivo="entrada_asignacion_cuadrillas.txt"):

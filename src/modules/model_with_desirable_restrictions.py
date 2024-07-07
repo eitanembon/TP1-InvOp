@@ -1,4 +1,4 @@
-from modules.model import Modelo
+from src.modules.model import Modelo
 
 RESTRICCION_ORDENES_REPETITIVAS = 9990
 RESTRICCION_CONFLICTO_TRAJABAJADORES = 9991

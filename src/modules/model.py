@@ -1,23 +1,29 @@
-
+import cplex
+from src.modules.instancia import cargar_instancia
+import time
 class Modelo:
-    def __init__(self, instancia, prob):
-        self.prob = prob
-        self.instancia = instancia
+    def __init__(self, nombre_input):
+        self.input_name = nombre_input
+        self.prob = cplex.Cplex()
+        self.instancia = cargar_instancia(nombre_input)
         self.coeficientes_funcion_objetivo = []
         self.nombres2indices = {}
         # Poner nombre a las variables
         self.nombres = []
 
+
     def armar_lp(self, nombre_archivo_salida = "asignacionCuadrillas"):
 
+        print('Agregando Variables')
         # Agregar las variables
-        self.agregar_variables()
+        self.agregar_variables_sin_refactor()
 
-
+        
         # Agregar las variables al problema
         cantVar = len(self.nombres)
         self.prob.variables.add(obj = self.coeficientes_funcion_objetivo, lb = [0]*cantVar, ub = [1]*cantVar, types=['B']*cantVar, names=self.nombres)
 
+        print('Agregando Restricciones')
         # Agregar las restricciones 
         self.agregar_restricciones()
 
@@ -27,8 +33,9 @@ class Modelo:
         # nombre del problema
         self.prob.set_problem_name('Asignacion de cuadrillas')
 
+        print('Escribiendo archivo')
         # Escribir el lp a archivo
-        self.prob.write(f'{nombre_archivo_salida}.lp')
+        self.prob.write(f'{nombre_archivo_salida}input{self.input_name[-6:]}''.lp')
 
 
 
@@ -412,6 +419,7 @@ class Modelo:
                         self.prob.linear_constraints.add(lin_expr=[fila], senses=['L'], rhs=[0], names=[f'Ecuacion_{nro_ecuacion}_Restriccion_{nro_restriccion}'])
                         nro_restriccion += 1
         return nro_restriccion
+   
     def un_trabajador_no_puede_realizar_un_trabajo_en_dos_tiempos_diferentes(self, nro_ecuacion):
         nro_restriccion = 0
         for i in range(self.instancia.cantidad_trabajadores):
@@ -442,14 +450,31 @@ class Modelo:
                     nro_restriccion += 1
     
     """====================Solucion===================="""
-    def resolver_lp(self):
+    def resolver_lp(self, log_stream = None):
         
         # Definir los parametros del solver
         # prob.parameters....
         
         # Resolver el lp
-        self.prob.solve()
+        # if log_stream is not None:
+        #     with open(log_stream, 'w') as f:
+        #         self.prob.set_log_stream(f)
+        #         self.prob.set_results_stream(f)
+        
 
+        start_time = time.process_time()
+        self.prob.solve()
+        end_time = time.process_time()
+
+        self.time = round(end_time - start_time, 3)
+                
+
+    def guardar_resultados(self, dict):
+        dict[self.input_name] = {'f_obj': self.prob.solution.get_objective_value(), 'tiempo': self.time}
+        
+    def tiempo_ejecucion(self):
+        return self.time
+        
     def mostrar_solucion(self):
         # Obtener informacion de la solucion a traves de 'solution'
         
@@ -468,3 +493,6 @@ class Modelo:
         for i in range(len(x)):
             if x[i] > 1e-5:
                 print(self.prob.variables.get_names(i), x[i])
+
+    def valor_objetivo(self):
+        return self.prob.solution.get_objective_value()
