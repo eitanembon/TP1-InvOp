@@ -16,13 +16,13 @@ def generar_par_aleatorio(maximo):
 def generate_inputs():
     for i in range(10):
 
-        cant_trabajadores = random.randint(20,50)
+        cant_trabajadores = random.randint(20,30)
         cant_ordenes = random.randint(cant_trabajadores // 2, 2 * cant_trabajadores)
 
-        cant_ordenes_correlativas = random.randint(math.ceil(0.03 * cant_ordenes), math.floor(0.08 * cant_ordenes))
-        cant_ordenes_conflictivas = random.randint(math.ceil(0.02 * cant_ordenes), math.floor(0.05 * cant_ordenes))
-        cant_conflictos_trabajadores = random.randint(math.ceil(0.02 * cant_trabajadores), math.floor(0.08 * cant_trabajadores))  # Opcional
-        cant_ordenes_repetitivas = random.randint(math.ceil(0.05 * cant_ordenes), math.floor(0.12 * cant_ordenes))      # Opcional
+        cant_ordenes_correlativas = random.randint(math.ceil(0.03 * cant_ordenes), math.floor(0.08 * cant_ordenes) +1)
+        cant_ordenes_conflictivas = random.randint(math.ceil(0.02 * cant_ordenes), math.floor(0.05 * cant_ordenes)+1)
+        cant_conflictos_trabajadores = random.randint(math.ceil(0.02 * cant_trabajadores), math.floor(0.08 * cant_trabajadores)+1)  # Opcional
+        cant_ordenes_repetitivas = random.randint(math.ceil(0.05 * cant_ordenes), math.floor(0.12 * cant_ordenes)+1)      # Opcional
 
         # Create an instance of the class
         instancia = InstanciaAsignacionCuadrillas()
