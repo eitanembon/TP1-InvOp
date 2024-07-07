@@ -16,19 +16,13 @@ def generar_par_aleatorio(maximo):
 def generate_inputs():
     for i in range(10):
 
-        cant_trabajadores = random.randint(20,100)
-        # cant_trabajadores = 20 ## Modifico eitan
-        cant_ordenes = random.randint(cant_trabajadores // 2, 4 * cant_trabajadores)
+        cant_trabajadores = random.randint(20,50)
+        cant_ordenes = random.randint(cant_trabajadores // 2, 2 * cant_trabajadores)
 
         cant_ordenes_correlativas = random.randint(math.ceil(0.03 * cant_ordenes), math.floor(0.08 * cant_ordenes))
         cant_ordenes_conflictivas = random.randint(math.ceil(0.02 * cant_ordenes), math.floor(0.05 * cant_ordenes))
         cant_conflictos_trabajadores = random.randint(math.ceil(0.02 * cant_trabajadores), math.floor(0.08 * cant_trabajadores))  # Opcional
         cant_ordenes_repetitivas = random.randint(math.ceil(0.05 * cant_ordenes), math.floor(0.12 * cant_ordenes))      # Opcional
-
-        # cant_ordenes_correlativas = 0
-        # cant_ordenes_conflictivas = 0
-        # cant_conflictos_trabajadores = 0
-        # cant_ordenes_repetitivas = 0
 
         # Create an instance of the class
         instancia = InstanciaAsignacionCuadrillas()
@@ -37,14 +31,27 @@ def generate_inputs():
         instancia.cantidad_ordenes = cant_ordenes
         instancia.ordenes = []
         for j in range(cant_ordenes):
-            # cant_trabajdores_orden = random.randint(1, math.ceil(0.3 * cant_trabajadores)) ## Modifico eitan
-            cant_trabajdores_orden = 1
+            cant_trabajdores_orden = random.randint(1, math.ceil(0.3 * cant_trabajadores))
             beneficio = random.randint(1200 * cant_trabajdores_orden, 4000 * cant_trabajdores_orden)
             instancia.ordenes.append(Orden(j, beneficio, cant_trabajdores_orden))
-        instancia.conflictos_trabajadores = [generar_par_aleatorio(cant_trabajadores - 1) for i in range(cant_conflictos_trabajadores)]
-        instancia.ordenes_correlativas = [generar_par_aleatorio(cant_ordenes - 1) for i in range(cant_ordenes_correlativas)]
-        instancia.ordenes_conflictivas = [generar_par_aleatorio(cant_ordenes - 1) for i in range(cant_ordenes_conflictivas)]
-        instancia.ordenes_repetitivas = [generar_par_aleatorio(cant_ordenes - 1) for i in range(cant_ordenes_repetitivas)]
+        
+        conflictos_trabajadores = set()
+        for _ in range(cant_conflictos_trabajadores):
+            conflictos_trabajadores.add(generar_par_aleatorio(cant_trabajadores - 1))
+        ordenes_correlativas = set()
+        for _ in range(cant_ordenes_correlativas):
+            ordenes_correlativas.add(generar_par_aleatorio(cant_ordenes - 1))
+        ordenes_conflictivas = set()
+        for _ in range(cant_ordenes_conflictivas):
+            ordenes_conflictivas.add(generar_par_aleatorio(cant_ordenes - 1))
+        ordenes_repetitivas = set()
+        for _ in range(cant_ordenes_repetitivas):
+            ordenes_repetitivas.add(generar_par_aleatorio(cant_ordenes - 1))
+
+        instancia.conflictos_trabajadores = list(conflictos_trabajadores)
+        instancia.ordenes_correlativas = list(ordenes_correlativas)
+        instancia.ordenes_conflictivas = list(ordenes_conflictivas)
+        instancia.ordenes_repetitivas = list(ordenes_repetitivas)
         # Save the instance to a file
         instancia.save('inputs_v2/input_{}.txt'.format(i))
 
