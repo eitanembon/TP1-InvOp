@@ -10,9 +10,11 @@ class Modelo:
         self.nombres2indices = {}
         # Poner nombre a las variables
         self.nombres = []
+        
 
 
     def armar_lp(self, nombre_archivo_salida = "asignacionCuadrillas"):
+
 
         print('Agregando Variables')
         # Agregar las variables
@@ -23,6 +25,7 @@ class Modelo:
         cantVar = len(self.nombres)
         self.prob.variables.add(obj = self.coeficientes_funcion_objetivo, lb = [0]*cantVar, ub = [1]*cantVar, types=['B']*cantVar, names=self.nombres)
 
+        
         print('Agregando Restricciones')
         # Agregar las restricciones 
         self.agregar_restricciones()
@@ -40,12 +43,6 @@ class Modelo:
 
 
     """====================Variables===================="""
-    def agregar_variable(self,nombre, coeficiente:float, indices:list[int]):
-        nombre_var = nombre + '_' + '_'.join(map(str,indices))
-        # print(nombre_var)
-        self.nombres.append(nombre_var)
-        self.coeficientes_funcion_objetivo.append(coeficiente)
-        self.nombres2indices[nombre_var] = len(self.nombres) - 1
     
     def agregar_variables_sin_refactor(self):
         # Definir y agregar las variables:
@@ -122,58 +119,10 @@ class Modelo:
             self.nombres2indices[nombre] = len(self.nombres) - 1
             
         
-        cantVar = len(self.nombres)
-        # Agregar las variables
-        self.prob.variables.add(obj = self.coeficientes_funcion_objetivo, lb = [0]*cantVar, ub = [1]*cantVar, types=['B']*cantVar, names=self.nombres)
+        # cantVar = len(self.nombres)
+        # # Agregar las variables
+        # self.prob.variables.add(obj = self.coeficientes_funcion_objetivo, lb = [0]*cantVar, ub = [1]*cantVar, types=['B']*cantVar, names=self.nombres)
 
-    def agregar_variables(self):
-        # Definir y agregar las variables:
-        # metodo 'add' de 'variables', con parametros:
-        # obj: costos de la funcion objetivo
-        # lb: cotas inferiores
-        # ub: cotas superiores
-        # types: tipo de las variables
-        # names: nombre (como van a aparecer en el archivo .lp)
-        
-        # Llenar coef\_funcion\_objetivo
-        for i in range(self.instancia.cantidad_trabajadores):
-            for j in range(self.instancia.cantidad_ordenes):
-                for d in range(self.instancia.dias):
-                    for t in range(self.instancia.turnos):
-                        self.agregar_variable('W', 0, [i, j, d, t])
-                        
-        for i in range(self.instancia.cantidad_trabajadores):
-            for d in range(self.instancia.dias):
-                for t in range(self.instancia.turnos):
-                    self.agregar_variable('H', 0, [i, d, t])
-
-        for i in range(self.instancia.cantidad_trabajadores):
-            for d in range(self.instancia.dias):
-                self.agregar_variable('L', 0, [i, d])
-
-        for i in range(self.instancia.cantidad_trabajadores):
-            for j in range(self.instancia.cantidad_ordenes):
-                self.agregar_variable('X', 0, [i, j])
-                
-        for i in range(self.instancia.cantidad_trabajadores):
-            for k in range(5):
-                self.agregar_variable('Y', -1000, [i, k])
-            for k in range(5, 10):
-                self.agregar_variable('Y', -1200, [i, k])
-            for k in range(10, 15):
-                self.agregar_variable('Y', -1400, [i, k])
-            for k in range(15, 20):
-                self.agregar_variable('Y', -1500, [i, k])
-        
-        for j in range(self.instancia.cantidad_ordenes):
-            for d in range(self.instancia.dias):
-                for t in range(self.instancia.turnos):
-                    self.agregar_variable('Z', 0, [j, d, t])
-        for j in range(self.instancia.cantidad_ordenes):
-            self.agregar_variable('K', 0, [j])
-            
-        
-    
     """====================Restricciones===================="""
     def agregar_restricciones(self):
         # Agregar las restricciones ax <= (>= ==) b:
@@ -469,9 +418,11 @@ class Modelo:
         self.time = round(end_time - start_time, 3)
                 
 
-    def guardar_resultados(self, dict):
-        dict[self.input_name] = {'f_obj': self.prob.solution.get_objective_value(), 'tiempo': self.time}
-        
+    def guardar_resultados(self, json):
+        json['input'] = self.input_name
+        json['objetivo'] = self.prob.solution.get_objective_value()
+        json['tiempo'] = self.time
+        json['variables'] = {'cant_trabajadores': self.instancia.cantidad_trabajadores, 'cant_ordenes': self.instancia.cantidad_ordenes, 'cant_ordenes_conflictivas': len(self.instancia.ordenes_conflictivas), 'cant_ordenes_correlativas': len(self.instancia.ordenes_correlativas)}
     def tiempo_ejecucion(self):
         return self.time
         
@@ -493,6 +444,14 @@ class Modelo:
         for i in range(len(x)):
             if x[i] > 1e-5:
                 print(self.prob.variables.get_names(i), x[i])
+
+    def variables_con_valor_positivo(self):
+        x  = self.prob.solution.get_values()
+        variables = []
+        for i in range(len(x)):
+            if x[i] > 1e-5:
+                variables.append(self.prob.variables.get_names(i))
+        return variables
 
     def valor_objetivo(self):
         return self.prob.solution.get_objective_value()

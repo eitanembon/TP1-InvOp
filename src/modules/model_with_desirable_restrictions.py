@@ -4,9 +4,9 @@ RESTRICCION_ORDENES_REPETITIVAS = 9990
 RESTRICCION_CONFLICTO_TRAJABAJADORES = 9991
 
 class ModeloWithRestrictionsAdded(Modelo):
-    def __init__(self, instancia, prob, restricciones_a_agregar: list):
+    def __init__(self, input, restricciones_a_agregar: list):
         self.restricciones_a_agregar = restricciones_a_agregar
-        super().__init__(instancia, prob)
+        super().__init__(input)
     def agregar_restricciones(self):
 
         nro_ecuacion = super().agregar_restricciones()
@@ -39,17 +39,26 @@ class ModeloWithRestrictionsAdded(Modelo):
 
 
 class ModeloWithRestrictionsInObjectiveFunction(Modelo):
-    def __init__(self, instancia, prob, restricciones_a_agregar: list):
+    def __init__(self, input, restricciones_a_agregar: list, alpha1, alpha2):
         self.restricciones_a_agregar = restricciones_a_agregar
-        super().__init__(instancia, prob)
-    def agregar_variables(self, alpha1, alpha2):
-        super().agregar_variables()
+        self.alpha1 = alpha1
+        self.alpha2 = alpha2
+        super().__init__(input)
+    def agregar_variables_sin_refactor(self):
+        super().agregar_variables_sin_refactor()
+        print('Agregando variables de restricciones en la funcion objetivo')
         if RESTRICCION_CONFLICTO_TRAJABAJADORES in self.restricciones_a_agregar:
             # Agregar variables de conflictos entre trabajadores
-            self.agregar_variable('D', alpha1, [1])
+            nombre = 'D_1'
+            self.nombres.append(nombre)
+            self.coeficientes_funcion_objetivo.append(self.alpha1)
+            self.nombres2indices[nombre] = len(self.nombres) - 1
         if RESTRICCION_ORDENES_REPETITIVAS in self.restricciones_a_agregar:
             # Agregar variables de ordenes repetitivas
-            self.agregar_variable('D', alpha2, [2])
+            nombre = 'D_2'
+            self.nombres.append(nombre)
+            self.coeficientes_funcion_objetivo.append(self.alpha2)
+            self.nombres2indices[nombre] = len(self.nombres) - 1
         
         
     def agregar_restricciones(self):
@@ -78,3 +87,9 @@ class ModeloWithRestrictionsInObjectiveFunction(Modelo):
                     self.prob.linear_constraints.add(lin_expr=[fila], senses=['L'], rhs=[2], names=[f'Ecuacion_{nro_ecuacion}_Restriccion_{nro_restriccion}'])
                     nro_restriccion += 1
             nro_ecuacion += 1
+        
+    def valor_objetivo(self):
+        return super().valor_objetivo() - self.alpha1 * self.prob.solution.get_values('D_1') - self.alpha2 * self.prob.solution.get_values('D_2')
+    
+    def obtener_asignacion_variables_deseables(self):
+        return { 'D_1': self.prob.solution.get_values('D_1'), 'D_2': self.prob.solution.get_values('D_2')}
